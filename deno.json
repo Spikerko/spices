@@ -1,6 +1,7 @@
 {
 	"name": "@spikerko/spices",
 	"version": "1.0.0",
+	"license": "MIT",
 	"tasks": {},
 	"compilerOptions": {
 		"lib": [
