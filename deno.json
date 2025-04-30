@@ -23,7 +23,6 @@
 		"./Spicetify/Terminal": "./Spicetify/Terminal.ts",
 		"./Spicetify/Services/Session": "./Spicetify/Services/Session.ts",
 		"./Spicetify/Services/Cache": "./Spicetify/Services/Cache.ts",
-		"./Spicetify/Services/Player": "./Spicetify/Services/Player/mod.ts",
 		"./Spicetify/Services/Library": "./Spicetify/Services/Library.ts",
 
 		"./Spicetify/Types/API/TrackInformation": "./Spicetify/Types/API/TrackInformation.ts",
