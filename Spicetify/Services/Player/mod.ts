@@ -185,7 +185,7 @@ export let SongDetails: (LoadedSongDetails | undefined) = undefined
 export let HaveSongDetailsLoaded: boolean = false
 
 const TrackInformationStore = GetExpireStore<TrackInformation>(
-	"Player_TrackInformation", 2,
+	"SpotifyPlayer_TrackInformation", 1,
 	{
 		Duration: 2,
 		Unit: "Weeks"
@@ -452,7 +452,7 @@ OnSpotifyReady.then(
 					)
 				}
 
-				// Load our song details AND lyrics
+				// Load our song details
 				HasIsLikedLoaded = false
 				LoadSongDetails()
 				// Fire our events

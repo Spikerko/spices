@@ -11,7 +11,7 @@ import { IsDevelopment } from "./Session.ts";
 // Configuration Types
 export type ExpirationSettings = {
     Duration: number;
-    Unit: ("Weeks" | "Months");
+    Unit: ("Weeks" | "Months" | "Days" | "Hours" | "Minutes" | "Seconds");
 }
 
 // Instant Store Types
@@ -67,9 +67,11 @@ export const GetInstantStore = <InstantStoreTemplate extends InstantStoreItems>(
         while (templateChecks.length > 0) {
             const [checkObj, defaultObj, path] = templateChecks.pop()!;
             for (const key in defaultObj) {
+                // deno-lint-ignore no-explicit-any
                 const have = (checkObj as any)[key];
                 const want = defaultObj[key];
                 if (have === undefined) {
+                    // deno-lint-ignore no-explicit-any
                     (checkObj as any)[key] = JSON.parse(JSON.stringify(want));
                 } else if (typeof have === "object" && typeof want === "object") {
                     templateChecks.push([have as Record<string, unknown>, want as Record<string, unknown>, `${path}.${key}`]);
@@ -162,13 +164,39 @@ export const GetExpireStore = <ItemType>(
         },
         SetItem: (itemName: string, content: ItemType) => {
             const expireAtDate = new Date();
-            expireAtDate.setHours(0, 0, 0, 0);
-            if (itemExpirationSettings.Unit === "Weeks") {
-                expireAtDate.setDate(expireAtDate.getDate() + (itemExpirationSettings.Duration * 7));
-            } else {
-                expireAtDate.setMonth(expireAtDate.getMonth() + itemExpirationSettings.Duration);
-                expireAtDate.setDate(0);
+
+            // Calculate expiration time based on the unit
+            switch (itemExpirationSettings.Unit) {
+                case "Weeks":
+                    // Reset to start of day and add weeks
+                    expireAtDate.setHours(0, 0, 0, 0);
+                    expireAtDate.setDate(expireAtDate.getDate() + (itemExpirationSettings.Duration * 7));
+                    break;
+                case "Months":
+                    // Reset to start of day and add months
+                    expireAtDate.setHours(0, 0, 0, 0);
+                    expireAtDate.setMonth(expireAtDate.getMonth() + itemExpirationSettings.Duration);
+                    expireAtDate.setDate(0); // Last day of the month
+                    break;
+                case "Days":
+                    // Reset to start of day and add days
+                    expireAtDate.setHours(0, 0, 0, 0);
+                    expireAtDate.setDate(expireAtDate.getDate() + itemExpirationSettings.Duration);
+                    break;
+                case "Hours":
+                    // Add hours to current time
+                    expireAtDate.setTime(expireAtDate.getTime() + (itemExpirationSettings.Duration * 60 * 60 * 1000));
+                    break;
+                case "Minutes":
+                    // Add minutes to current time
+                    expireAtDate.setTime(expireAtDate.getTime() + (itemExpirationSettings.Duration * 60 * 1000));
+                    break;
+                case "Seconds":
+                    // Add seconds to current time
+                    expireAtDate.setTime(expireAtDate.getTime() + (itemExpirationSettings.Duration * 1000));
+                    break;
             }
+
             const expireAt = expireAtDate.getTime();
             const expireItem: ExpireItem<ItemType> = {
                 ExpiresAt: expireAt,
