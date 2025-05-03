@@ -1,6 +1,6 @@
 // Spotify Types
-import type { TrackInformationResponse, TrackInformation, TrackReleaseDate } from "../../Types/API/InternalTrackInformation.ts"
-import type TrackMetadata from "../../Types/App/TrackMetadata.ts"
+import type { TrackInformationResponse, TrackInformation, TrackReleaseDate } from "../Types/API/InternalTrackInformation.ts"
+import type TrackMetadata from "../Types/App/TrackMetadata.ts"
 
 // Web-Modules
 import { Signal, type Event } from "jsr:@socali/modules@^4.4.1/Signal"
@@ -12,8 +12,8 @@ import {
 	GlobalMaid,
 	OnSpotifyReady,
 	SpotifyPlayer, SpotifyPlatform, SpotifyURI, SpotifyRequestBuilder
-} from "../Session.ts"
-import { GetExpireStore } from '../Cache.ts'
+} from "./Session.ts"
+import { GetExpireStore } from './Cache.ts'
 
 // Create our maid for the Player
 const PlayerMaid = GlobalMaid.Give(new Maid())
