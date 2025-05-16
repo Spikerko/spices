@@ -66,6 +66,7 @@ export default async function(forceToVersion?: true) {
 		.replace("-1", `${BuildReleaseLocation.Url}/${encodeURIComponent(BuildName)}`)
 		.replace("-2", `${BuildReleaseLocation.VersionCheckUrl}/${encodeURIComponent(BuildName)}`)
 		.replace("-3", (forceToVersion ? `"${BuildVersion}"` : "undefined"))
+		.replace("-4", BuildName)
 	)
 	await Deno.writeTextFile(join("./Builds", "Release", `${BuildName}.mjs`), autoUpdateFile)
 

@@ -2,6 +2,7 @@
 const BucketURL = "-1" // This is replaced by the build-script
 const LatestVersionURL = "-2" // This is replaced by the build-script
 const ForceToVersion = -3 // This is replaced by the build-script
+const ProjectName = "-4" // This is replaced by the build-script
 
 // Handle getting our version from the version string
 const GetVersionInformation = (text) => {
@@ -34,6 +35,31 @@ await new Promise(
 		)
 	}
 )
+
+const ShowUpdatedNotification = (name, fromVersion, toVersion, versionDistance) => {
+	Spicetify.Snackbar.enqueueSnackbar(
+		Spicetify.React.createElement(
+			"div",
+			{
+				dangerouslySetInnerHTML: {
+					__html: `<h3>${name} Updated!</h3>
+					<span style = 'opacity: 0.75;'>Version ${fromVersion} -> ${toVersion}</span>`.trim()
+				}
+			}
+		), {
+			variant: (
+				(versionDistance.Major > 0) ? "success"
+				: (
+					(versionDistance.Major < 0)
+					|| (versionDistance.Minor < 0)
+					|| (versionDistance.Patch < 0)
+				) ? "warning"
+				: "info"
+			),
+			autoHideDuration: 5000
+		}
+	)
+}
 
 // Handle version updating
 const QueuedVersionImports = []
@@ -101,28 +127,8 @@ const UpdateVersion = (toVersion) => {
 				// Handle notifiying that we updated
 				if (versionDistance !== undefined) {
 					if (module.UpdateNotice.Type === "Notification") {
-						Spicetify.Snackbar.enqueueSnackbar(
-							Spicetify.React.createElement(
-								"div",
-								{
-									dangerouslySetInnerHTML: {
-										__html: `<h3>${module.UpdateNotice.Name} Updated!</h3>
-										<span style = 'opacity: 0.75;'>Version ${fromVersion} -> ${toVersion}</span>`.trim()
-									}
-								}
-							), {
-								variant: (
-									(versionDistance.Major > 0) ? "success"
-									: (
-										(versionDistance.Major < 0)
-										|| (versionDistance.Minor < 0)
-										|| (versionDistance.Patch < 0)
-									) ? "warning"
-									: "info"
-								),
-								autoHideDuration: 5000
-							}
-						)
+						ShowUpdatedNotification(module.UpdateNotice.Name, fromVersion, toVersion, versionDistance)
+						localStorage.setItem(`${BucketURL}|UpdateNotice`, JSON.stringify(module.UpdateNotice))
 					}
 				}
 
@@ -141,11 +147,40 @@ const UpdateVersion = (toVersion) => {
 // Update our currentVersion IF we have a version stored (coming from reload)
 let cameFromReload = false
 {
-	const storedVersion = localStorage.getItem(BucketURL)
+	const storedVersion = localStorage.getItem(`${ProjectName}|StoredVersion`)
 	if (storedVersion !== null) {
 		currentVersion = storedVersion, cameFromReload = true
-		localStorage.removeItem(BucketURL)
+		localStorage.removeItem(`${ProjectName}|StoredVersion`)
 	}
+}
+
+const LastFetchedVersionKey = `${ProjectName}|LastFetchedVersion`;
+
+// Show Update Notice after the page was reloaded
+if (localStorage.getItem(LastFetchedVersionKey) !== version) {
+	const fromVersion = localStorage.getItem(LastFetchedVersionKey) ?? "0.0.0";
+	const toVersion = version;
+	const fromVersionInformation = ((fromVersion === undefined) ? undefined : GetVersionInformation(fromVersion))
+	const toVersionInformation = GetVersionInformation(toVersion)
+	const versionDistance = (
+		(fromVersionInformation === undefined) ? undefined
+		: {
+			Major: (toVersionInformation.Major - fromVersionInformation.Major),
+			Minor: (toVersionInformation.Minor - fromVersionInformation.Minor),
+			Patch: (toVersionInformation.Patch - fromVersionInformation.Patch)
+		}
+	)
+	if (versionDistance !== undefined) {
+		// Show Update Notice
+		const moduleUpdateNotice = JSON.parse(localStorage.getItem(`${ProjectName}|UpdateNotice`) ?? {}) ?? undefined;
+		if (moduleUpdateNotice?.Type === "Notification") {
+			ShowUpdatedNotification(moduleUpdateNotice?.Name ?? "Unknown Spicetify Extension", fromVersion, version, versionDistance);
+		}
+	}
+	
+	// Cleanup Localsotage
+	localStorage.removeItem(`${ProjectName}|UpdateNotice`);
+	localStorage.removeItem(LastFetchedVersionKey);
 }
 
 // Now handle receiving our version updates
@@ -153,7 +188,10 @@ let cameFromReload = false
 	const GetLatestVersion = () => (
 		fetch(LatestVersionURL)
 		.then(response => response.text())
-		.then(version => UpdateVersion(version))
+		.then(version => {
+			UpdateVersion(version)
+			localStorage.setItem(LastFetchedVersionKey, version);
+		})
 		.catch(() => setTimeout(GetLatestVersion, 1000))
 	)
 	GetLatestVersion()
