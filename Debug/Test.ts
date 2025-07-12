@@ -8,7 +8,7 @@ import { tty, colors } from "jsr:@codemonument/cliffy@1.0.0-rc.3/ansi"
 import { keypress, type KeyPressEvent } from "jsr:@codemonument/cliffy@1.0.0-rc.3/keypress"
 
 // Oak Imports
-import { Application, Status } from "jsr:@oak/oak@16.0.0"
+import { Application, Status } from "jsr:@oak/oak@17.1.5"
 
 // Spicetify Imports
 import { ToggleExtension, Apply, RemoveExtension } from "../Spicetify/Terminal.ts"
